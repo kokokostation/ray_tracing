@@ -102,7 +102,7 @@ double ray_tracing::Sphere::angle_cos(const Ray& ray) const
 
 ray_tracing::Orientation ray_tracing::Sphere::side(const Ray& ray) const
 {
-    return in(ray.begin) ? Orientation::UP : Orientation::DOWN;
+    return in(ray.begin) ? Orientation::DOWN : Orientation::UP;
 }
 
 ray_tracing::Ray ray_tracing::Sphere::reflect(const Ray& ray) const
@@ -114,6 +114,6 @@ ray_tracing::Ray ray_tracing::Sphere::reflect(const Ray& ray) const
 ray_tracing::Ray ray_tracing::Sphere::refract(const Ray& ray) const
 {
     Point intersection = intersect(ray);
-    return ray_tracing::refract(ray, intersection, normal(intersection), surface.refraction);
+    return ray_tracing::refract(ray, intersection, normal(intersection), side(ray) == Orientation::UP ? surface.refraction : 1. / surface.refraction);
 }
 
