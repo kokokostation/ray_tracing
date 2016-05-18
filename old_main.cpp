@@ -7,17 +7,15 @@ using namespace ray_tracing;
 
 int main(int argc, char *argv[])
 {
-    QFile file("output.txt");
-    file.open(QIODevice::ReadOnly);
-    QTextStream in(&file);
+//    QFile file("output.txt");
+//    file.open(QIODevice::ReadOnly);
+//    QTextStream in(&file);
 
-    ray_tracing::Screen screen(ray_tracing::Point(-1, -1, -1), ray_tracing::Point(-1, -1, 1), ray_tracing::Point(1, -1, -1), 50, 50);
+    ray_tracing::Screen screen(ray_tracing::Point(-1, -1, -1), ray_tracing::Point(-1, -1, 1), ray_tracing::Point(1, -1, -1), 500, 500);
 
-    ray_tracing::Point view(0, -6, 0);
+    ray_tracing::Point view(1, -6, 0);
 
-    ray_tracing::Tracer tracer;
-    tracer.set_screen(screen);
-    tracer.set_view(view);
+    ray_tracing::Tracer tracer(view, screen);
 
 //    int n;
 //    in >> n;
@@ -27,11 +25,10 @@ int main(int argc, char *argv[])
 //        for(int j = 0; j < 3; ++j)
 //            in >> p[j].x() >> p[j].y() >> p[j].z();
 
-//        tracer.add_primitive(Triangle(p, Surface<Color>(Color(1.0, 0, 1.0), 0, 0, 1)));
+//        tracer.add_primitive(Triangle(p, Color(1.0, 0, 1.0)));
 //    }
 
-    //tracer.add_primitive(Sphere(Point(0, 0, 0), 0.5, Surface<Color>(Color(0, 1, 0), 0, 0, 0.85)));
-    //tracer.add_primitive(Triangle({Point(0.5, 0.6, -0.1), Point(-0.5, 0.6, -0.1), Point(0, 0.6, 0.6)}, Surface<Color>(Color(1, 0, 0), 0, 0, 1)));
+    tracer.add_primitive(Sphere(Point(0, 0, 0), 0.5, Surface<Color>(Color(1, 0, 0), 0.8, 1, 0.85)));
 //    tracer.add_primitive(Sphere(Point(0, 0, 0.5), 0.3, Surface<Color>(Color(0.1, 0.1, 1), 0.7, 0.7, 1)));
 //    tracer.add_primitive(Sphere(Point(-0.7, -0.7, -0.6), 0.3, Surface<Color>(Color(1, 0.1, 0.1), 0.7, 0.7, 1)));
 //    tracer.add_primitive(Sphere(Point(0.7, -0.7, -0.6), 0.3, Surface<Color>(Color(1, 0.1, 0.1), 0.7, 0.7, 1)));
@@ -41,11 +38,11 @@ int main(int argc, char *argv[])
         for(int j = 0; j < 100; ++j)
             test[i][j] = (i + j) % 2 ? Color(1, 1, 1) : Color(0, 0, 0);
 
-    tracer.add_primitive(Parallelogramm<Texture>({Point(5, 2, -5), Point(-5, 2, -5), Point(-5, 2, 5)}, Surface<Texture>(test, 0.7, 0, 1)));
+    tracer.add_primitive(Parallelogramm<Texture>({Point(-5, 2, -5), Point(5, 2, -5), Point(5, 2, 5)}, Surface<Texture>(test, 0.7, 0.7, 1)));
 //    tracer.add_light(Light(Point(4, -4, 0), 15));
 //    tracer.add_light(Light(Point(1, -4, 0), 15));
 //    tracer.add_light(Light(Point(3, -4, 0), 60));
-    tracer.add_light(Light(Point(2, 1, 3), 35));
+    tracer.add_light(Light(Point(0, 0, 2), 15));
 
     Matrix picture = tracer.produce_picture();
 

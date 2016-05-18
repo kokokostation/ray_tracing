@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     picture.cpp \
     light.cpp \
     kd_tree.cpp \
-    continuous_performer.cpp
+    continuous_performer.cpp \
+    parcer.cpp
 
 HEADERS  += \
     main_window.h \
@@ -29,7 +30,8 @@ HEADERS  += \
     picture.h \
     light.h \
     kd_tree.h \
-    continuous_performer.h
+    continuous_performer.h \
+    parcer.h
 
 FORMS    +=
 

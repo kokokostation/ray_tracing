@@ -1,5 +1,3 @@
-#include <cassert>
-
 #include "primitive.h"
 #include "geometry.h"
 

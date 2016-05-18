@@ -35,6 +35,7 @@ struct Surface
     C color;
     double alpha, transparency, refraction;
 
+    Surface() {}
     Surface(const C& color, double alpha, double transparency, double refraction)
         : color(color), alpha(alpha), transparency(transparency), refraction(refraction) {}
 };
@@ -53,6 +54,7 @@ struct Screen
     Point left_down, left_up, right_down;
     size_t width, height;
 
+    Screen() {}
     Screen(const Point& left_down,
            const Point& left_up,
            const Point& right_down,

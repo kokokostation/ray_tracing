@@ -45,16 +45,14 @@ private:
     void parallel_perform(const Matrix& matrix, F function, Args&... args) const;
 
 public:
-    Tracer(const Point& view, const Screen& screen)
-        : view(view), screen(screen){}
-
     void add_primitive(const Triangle& triangle) {add_primitive(std::make_shared<Triangle>(triangle));}
     void add_primitive(const Quadrangle& quadrangle) {add_primitive(std::make_shared<Quadrangle>(quadrangle));}
     template<typename T>
     void add_primitive(const Parallelogramm<T>& parallelogramm) {add_primitive(std::make_shared<Parallelogramm<T>>(parallelogramm));}
     void add_primitive(const Sphere& sphere) {add_primitive(std::make_shared<Sphere>(sphere));}
-
     void add_light(const Light& light) {lights.push_back(light);}
+    void set_screen(const Screen& screen_) {screen = screen_;}
+    void set_view(const Point& view_) {view = view_;}
 
     Matrix produce_picture() const;
 };

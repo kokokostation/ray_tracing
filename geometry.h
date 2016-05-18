@@ -123,6 +123,7 @@ struct Box
 double intersect(const Ray& ray, const Box& box);
 Ray refract(const Ray& ray, const Point& point, Point normal, double refraction);
 Point projection(const Point& a, const Point& b);
+std::array<double, 2> projections(const Point& a, const Point& b, const Point& v);
 
 }
 

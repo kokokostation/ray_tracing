@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <future>
 #include <map>
-#include <cassert>
 
 #include "tracer.h"
 #include "kd_tree.h"

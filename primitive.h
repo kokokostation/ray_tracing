@@ -1,6 +1,8 @@
 #ifndef PRIMITIVE
 #define PRIMITIVE
 
+#include <cassert>
+
 #include "picture.h"
 #include "geometry.h"
 
@@ -169,16 +171,16 @@ public:
         : Base_quadrangle(points, orientation), Monochrome_primitive(surface) {}
 };
 
-//assuming the diagonal is (points[0], points[2])
+//assuming the diagonal is points[0] is right_down, points[1] is left_down, points[2] is left_up
 class Base_parallelogramm : public Base_quadrangle
 {   
 public:
     Base_parallelogramm(const std::array<Point, 3ul>& points, Orientation orientation = Orientation::UP)
-        : Base_quadrangle(std::array<Point, 4ul>{  points[0],
-                                            points[1],
-                                            points[2],
-                                            points[0] + points[2] - points[1]},
-                        orientation) {}
+        : Base_quadrangle(std::array<Point, 4ul>{   points[0],
+                                                    points[1],
+                                                    points[2],
+                                                    points[0] + points[2] - points[1]},
+                                                    orientation) {}
 };
 
 template<typename C>
@@ -201,9 +203,11 @@ public:
 
     Color get_color(const Point& point) const
     {
+        std::array<double, 2> decomposition = projections(points[2] - points[1], points[0] - points[1], point - points[1]);
+
         Texture texture = Simple_surface_primitive::surface.color;
-        return texture  [projection_coefficient(points[0] - points[1], point - points[1]) * texture.height()]
-                        [projection_coefficient(points[2] - points[1], point - points[1]) * texture.width()];
+        return texture  [decomposition[0] * texture.height()]
+                        [decomposition[1] * texture.width()];
     }
 };
 

@@ -1,6 +1,5 @@
 #include <cmath>
 #include <limits>
-#include <cassert>
 
 #include "geometry.h"
 #include "tracer.h"
@@ -202,4 +201,18 @@ ray_tracing::Ray ray_tracing::refract(const Ray& ray, const Point& point, Point 
         return Ray(point, point + ray.guiding() - projection(ray.guiding(), normal));
 
     return Ray(point, point + av + bv.normalized() * a / sqrt(f * f - 1));
+}
+
+std::array<double, 2> ray_tracing::projections(const Point& a, const Point& b, const Point& v)
+{
+    std::array<double, 2> result;
+
+    Point c = cross(a, b);
+
+    double det = determinant(a, b, c);
+
+    result[0] = determinant(v, b, c) / det;
+    result[1] = determinant(a, v, c) / det;
+
+    return result;
 }
