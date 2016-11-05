@@ -16,7 +16,7 @@ class Main_window : public QGLWidget
     Q_OBJECT
 
 public:
-    Main_window(Matrix matrix, QWidget *parent = 0);
+    Main_window(const Matrix& matrix, QWidget *parent = 0);
 
 private:
     Matrix matrix;

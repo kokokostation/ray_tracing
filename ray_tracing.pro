@@ -20,7 +20,7 @@ SOURCES += main.cpp\
     light.cpp \
     kd_tree.cpp \
     continuous_performer.cpp \
-    parcer.cpp
+    parser.cpp
 
 HEADERS  += \
     main_window.h \
@@ -31,7 +31,8 @@ HEADERS  += \
     light.h \
     kd_tree.h \
     continuous_performer.h \
-    parcer.h
+    parser.h \
+    template_utils.h
 
 FORMS    +=
 

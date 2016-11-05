@@ -28,7 +28,7 @@ void helper(std::future<void>& task, ray_tracing::Semaphore& semaphore)
     semaphore.increase();
 }
 
-void ray_tracing::continuous_perform(std::vector<std::future<void>>& tasks)
+void ray_tracing::Continuous_performer::continuous_perform(std::vector<std::future<void>>& tasks)
 {
     Semaphore semaphore(WORKERS_NUM);
 

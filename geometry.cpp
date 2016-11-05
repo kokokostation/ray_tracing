@@ -4,19 +4,24 @@
 #include "geometry.h"
 #include "tracer.h"
 
-const ray_tracing::Point ray_tracing::Point::NOWHERE = Point(std::numeric_limits<double>::max(),
-                                                             std::numeric_limits<double>::max(),
-                                                             std::numeric_limits<double>::max());
+const ray_tracing::Point ray_tracing::Point::MAX = Point(std::numeric_limits<double>::max(),
+                                                         std::numeric_limits<double>::max(),
+                                                         std::numeric_limits<double>::max());
 
-const ray_tracing::Point ray_tracing::Point::MAX = Point(   std::numeric_limits<double>::max(),
-                                                            std::numeric_limits<double>::max(),
-                                                            std::numeric_limits<double>::max());
+const ray_tracing::Point ray_tracing::Point::NOWHERE = ray_tracing::Point::MAX;
 
-const ray_tracing::Point ray_tracing::Point::MIN = Point(   std::numeric_limits<double>::min(),
-                                                            std::numeric_limits<double>::min(),
-                                                            std::numeric_limits<double>::min());
+const ray_tracing::Point ray_tracing::Point::MIN = Point(std::numeric_limits<double>::min(),
+                                                         std::numeric_limits<double>::min(),
+                                                         std::numeric_limits<double>::min());
 
-ray_tracing::Ray ray_tracing::Ray::NOWHERE_RAY = Ray(ray_tracing::Point::NOWHERE, ray_tracing::Point::NOWHERE);
+const ray_tracing::Ray ray_tracing::Ray::NOWHERE_RAY = Ray(ray_tracing::Point::NOWHERE, ray_tracing::Point::NOWHERE);
+
+std::istream& ray_tracing::operator>>(std::istream& stream, ray_tracing::Point& p)
+{
+    stream >> p.x() >> p.y() >> p.z();
+
+    return stream;
+}
 
 double ray_tracing::dot(const Point& a, const Point& b)
 {
@@ -32,8 +37,12 @@ ray_tracing::Point ray_tracing::cross(const Point& a, const Point& b)
 
 double ray_tracing::determinant(const Point& a, const Point& b, const Point& c)
 {
-    return a.x() * b.y() * c.z() + a.y() * b.z() * c.x() + a.z() * b.x() * c.y() -
-            (a.z() * b.y() * c.x() + a.y() * b.x() * c.z() + a.x() * b.z() * c.y());
+    return a.x() * b.y() * c.z() +
+           a.y() * b.z() * c.x() +
+           a.z() * b.x() * c.y() -
+           (a.z() * b.y() * c.x() +
+            a.y() * b.x() * c.z() +
+            a.x() * b.z() * c.y());
 }
 
 bool ray_tracing::eq_zero(double x)
@@ -54,12 +63,16 @@ int ray_tracing::signum(double x)
 ray_tracing::Point ray_tracing::intersect(const Ray& ray, const Plane& plane)
 {
     double t;
-    double det = determinant(plane.b - plane.a, plane.c - plane.a, ray.begin - ray.second);
+    double det = determinant(plane.b - plane.a,
+                             plane.c - plane.a,
+                             ray.begin - ray.second);
 
     if(eq_zero(det))
         t = -1;
     else
-        t = determinant(plane.b - plane.a, plane.c - plane.a, ray.begin - plane.a) / det;
+        t = determinant(plane.b - plane.a,
+                        plane.c - plane.a,
+                        ray.begin - plane.a) / det;
 
     if(t <= EPS)
         return Point::NOWHERE;
@@ -126,8 +139,11 @@ bool ray_tracing::Box::contains(const Point& point) const
 }
 
 //intersection coefficient for ray and quadrangle, perpendicular to an axis
-double intersection_coefficient(const ray_tracing::Ray& ray, ray_tracing::Point::Axis axis, double axis_coordinate,
-                                                    const ray_tracing::Point& ld, const ray_tracing::Point& ru)
+double intersection_coefficient(const ray_tracing::Ray& ray,
+                                ray_tracing::Point::Axis axis,
+                                double axis_coordinate,
+                                const ray_tracing::Point& ld,
+                                const ray_tracing::Point& ru)
 {
     if(ray_tracing::eq_zero(ray.guiding()[axis]))
         return ray_tracing::Ray::NOWHERE;
@@ -156,9 +172,17 @@ double ray_tracing::intersect(const Ray& ray, const Box& box)
     for(size_t i = 0; i < Point::AXIS_SIZE; ++i)
         for(double axis_coordinate : {box.ld[i], box.ru[i]})
         {
-            double coefficient = intersection_coefficient(ray, Point::Axis(i), axis_coordinate, box.ld, box.ru);
-            if(coefficient != ray_tracing::Ray::NOWHERE && (min_coefficient == ray_tracing::Ray::NOWHERE || coefficient < min_coefficient))
+            double coefficient = intersection_coefficient(ray,
+                                                          Point::Axis(i),
+                                                          axis_coordinate,
+                                                          box.ld, box.ru);
+
+            if(coefficient != ray_tracing::Ray::NOWHERE &&
+               (min_coefficient == ray_tracing::Ray::NOWHERE
+                || coefficient < min_coefficient))
+            {
                 min_coefficient = coefficient;
+            }
         }
 
     return min_coefficient;

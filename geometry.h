@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 namespace ray_tracing
 {
@@ -22,8 +23,7 @@ struct Point
     static const Point NOWHERE;
     static const Point MAX;
     static const Point MIN;
-    enum Axis {X, Y, Z};
-    constexpr static int AXIS_SIZE = 3;
+    enum Axis {X, Y, Z, AXIS_SIZE};
 
     static auto comparator(Axis axis)
     {
@@ -35,30 +35,92 @@ struct Point
 
     std::array<double, AXIS_SIZE> coordinates;
 
-    Point(double x, double y, double z) : coordinates{x, y, z} {}
-    Point(const Point& point) : coordinates(point.coordinates) {}
-    Point() {}
+    Point(double x, double y, double z)
+        : coordinates{x, y, z}
+    {}
+    Point(const Point& point)
+        : coordinates(point.coordinates)
+    {}
+    Point()
+    {}
+    static Point factory(double x, double y, double z)
+    {
+        return Point(x, y, z);
+    }
 
-    double& operator[](int axis) {return const_cast<double&>(static_cast<const Point*>(this)->operator[](axis));}
-    double& x() {return const_cast<double&>(static_cast<const Point*>(this)->x());}
-    double& y() {return const_cast<double&>(static_cast<const Point*>(this)->y());}
-    double& z() {return const_cast<double&>(static_cast<const Point*>(this)->z());}
-    const double& x() const {return coordinates[X];}
-    const double& y() const {return coordinates[Y];}
-    const double& z() const {return coordinates[Z];}
-    const double& operator[](int axis) const {return coordinates[axis];}
+    double& operator[](int axis)
+    {
+        return const_cast<double&>(static_cast<const Point*>(this)->operator[](axis));
+    }
+    double& x()
+    {
+        return const_cast<double&>(static_cast<const Point*>(this)->x());
+    }
+    double& y()
+    {
+        return const_cast<double&>(static_cast<const Point*>(this)->y());
+    }
+    double& z()
+    {
+        return const_cast<double&>(static_cast<const Point*>(this)->z());
+    }
+    const double& x() const
+    {
+        return coordinates[X];
+    }
+    const double& y() const
+    {
+        return coordinates[Y];
+    }
+    const double& z() const
+    {
+        return coordinates[Z];
+    }
+    const double& operator[](int axis) const
+    {
+        return coordinates[axis];
+    }
 
-    double mod() const {return sqrt(x() * x() + y() * y() + z() * z());}
-    Point normalized() const {return *this / mod();}
+    double mod() const
+    {
+        return sqrt(x() * x() + y() * y() + z() * z());
+    }
+    Point normalized() const
+    {
+        return *this / mod();
+    }
 
-    Point operator-(const Point& b) const {return *this + (-b);}
-    Point operator-() const {return Point(-x(), -y(), -z());}
-    Point operator+(const Point& b) const {return Point(x() + b.x(), y() + b.y(), z() + b.z());}
-    Point operator/(double b) const {return *this * (1.0 / b);}
-    Point operator*(double b) const {return Point(x() * b, y() * b, z() * b);}
-    bool operator==(const Point& b) const {return eq_zero((*this - b).mod());}
-    bool operator!=(const Point& b) const {return !(*this == b);}
+    Point operator-(const Point& b) const
+    {
+        return *this + (-b);
+    }
+    Point operator-() const
+    {
+        return Point(-x(), -y(), -z());
+    }
+    Point operator+(const Point& b) const
+    {
+        return Point(x() + b.x(), y() + b.y(), z() + b.z());
+    }
+    Point operator/(double b) const
+    {
+        return *this * (1.0 / b);
+    }
+    Point operator*(double b) const
+    {
+        return Point(x() * b, y() * b, z() * b);
+    }
+    bool operator==(const Point& b) const
+    {
+        return eq_zero((*this - b).mod());
+    }
+    bool operator!=(const Point& b) const
+    {
+        return !(*this == b);
+    }
 };
+
+std::istream& operator>>(std::istream& stream, Point& p);
 
 double dot(const Point& a, const Point& b);
 Point cross(const Point& a, const Point& b);
@@ -69,32 +131,49 @@ double angle(const Point& a, const Point& b, const Point& normal);
 //begin - vertex, (begin, second) - guiding line
 struct Ray
 {
-    constexpr static double NOWHERE = -1;
-    static Ray NOWHERE_RAY;
+    constexpr static const double NOWHERE = -1;
+    static const Ray NOWHERE_RAY;
 
     Point begin, second;
 
-    Ray() {}
-    Ray(const Point& begin, const Point& second) : begin(begin), second(second) {}
+    Ray()
+    {}
+    Ray(const Point& begin, const Point& second)
+        : begin(begin), second(second)
+    {}
     //takes Point point on the ray and returns c: begin + (second - begin) * c == second
     double coefficient(const Point& point) const;
-    Point guiding() const {return second - begin;}
-    Ray& correct() {begin = begin + guiding().normalized() * EPS; return *this;}
+    Point guiding() const
+    {
+        return second - begin;
+    }
+    Ray& correct()
+    {
+        begin = begin + guiding().normalized() * EPS;
+        return *this;
+    }
 };
 
 struct Segment
 {
     Point begin, end;
 
-    Segment(const Point& begin, const Point& end) : begin(begin), end(end) {}
+    Segment(const Point& begin, const Point& end)
+        : begin(begin), end(end)
+    {}
 };
 
 struct Plane
 {
     Point a, b, c;
 
-    Plane(const Point& a, const Point& b, const Point& c) : a(a), b(b), c(c) {}
-    Point normal() const {return cross(c - a, b - a);}
+    Plane(const Point& a, const Point& b, const Point& c)
+        : a(a), b(b), c(c)
+    {}
+    Point normal() const
+    {
+        return cross(c - a, b - a);
+    }
 };
 
 
@@ -109,12 +188,18 @@ struct Box
 {
     Point ld, ru;
 
-    Box() {}
-    Box(const Point& ld, const Point& ru) : ld(ld), ru(ru) {}
+    Box()
+    {}
+    Box(const Point& ld, const Point& ru)
+        : ld(ld), ru(ru)
+    {}
 
-    double surface_area() {return 2 * ( (ru.x() - ld.x()) * (ru.y() - ld.y()) +
-                                        (ru.x() - ld.x()) * (ru.z() - ld.z()) +
-                                        (ru.y() - ld.y()) * (ru.z() - ld.z()));}
+    double surface_area()
+    {
+        return 2 * ((ru.x() - ld.x()) * (ru.y() - ld.y()) +
+                    (ru.x() - ld.x()) * (ru.z() - ld.z()) +
+                    (ru.y() - ld.y()) * (ru.z() - ld.z()));
+    }
 
     std::array<Box, 2> split(Point::Axis axis, double splitting_plane) const;
     bool contains(const Point& point) const;

@@ -41,9 +41,8 @@ void ray_tracing::Main_window::resizeGL(int new_width, int new_height)
     glPixelZoom(new_width / (double) matrix.width(), new_height / (double) matrix.height());
 }
 
-ray_tracing::Main_window::Main_window(Matrix matrix, QWidget *parent)
-    : QGLWidget(parent),
-      matrix(matrix)
+ray_tracing::Main_window::Main_window(const Matrix& matrix, QWidget *parent)
+    : QGLWidget(parent), matrix(matrix)
 {
-    resize(900, 900);
+    resize(QDesktopWidget().availableGeometry(this).size());
 }

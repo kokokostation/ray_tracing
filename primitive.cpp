@@ -82,7 +82,8 @@ ray_tracing::Point ray_tracing::Sphere::intersect(const Ray& ray) const
     if(t[0] == Ray::NOWHERE)
         return Point::NOWHERE;
     else
-        return t[1] == Ray::NOWHERE ? ray.begin + ray.guiding() * t[0] : ray.begin + ray.guiding() * t[1];
+        return t[1] == Ray::NOWHERE ? ray.begin + ray.guiding() * t[0] :
+                                      ray.begin + ray.guiding() * t[1];
 }
 
 double ray_tracing::Sphere::point(Point::Axis axis, Either either) const
@@ -112,6 +113,9 @@ ray_tracing::Ray ray_tracing::Sphere::reflect(const Ray& ray) const
 ray_tracing::Ray ray_tracing::Sphere::refract(const Ray& ray) const
 {
     Point intersection = intersect(ray);
-    return ray_tracing::refract(ray, intersection, normal(intersection), side(ray) == Orientation::UP ? surface.refraction : 1. / surface.refraction);
+    return ray_tracing::refract(ray,
+                                intersection,
+                                normal(intersection),
+                                side(ray) == Orientation::UP ? surface.refraction : 1. / surface.refraction);
 }
 

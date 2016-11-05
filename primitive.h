@@ -35,19 +35,35 @@ protected:
     Surface<C> surface;
 
 public:
-    Simple_surface_primitive(const Surface<C>& surface) : surface(surface){}
+    Simple_surface_primitive(const Surface<C>& surface)
+        : surface(surface)
+    {}
 
-    virtual double get_transparency() const override {return surface.transparency;}
-    virtual double get_alpha() const override {return surface.alpha;}
-    virtual double get_refraction() const override {return surface.refraction;}
+    virtual double get_transparency() const override
+    {
+        return surface.transparency;
+    }
+    virtual double get_alpha() const override
+    {
+        return surface.alpha;
+    }
+    virtual double get_refraction() const override
+    {
+        return surface.refraction;
+    }
 };
 
 class Monochrome_primitive : public Simple_surface_primitive<Color>
 {
 public:
-    Monochrome_primitive(const Surface<Color>& surface) : Simple_surface_primitive(surface){}
+    Monochrome_primitive(const Surface<Color>& surface)
+        : Simple_surface_primitive(surface)
+    {}
 
-    virtual Color get_color(const Point& point) const override {return Simple_surface_primitive::surface.color;}
+    virtual Color get_color(const Point& point) const override
+    {
+        return Simple_surface_primitive::surface.color;
+    }
 };
 
 //assuming points are enumerated clockwise
@@ -58,11 +74,16 @@ protected:
     Orientation orientation;
     std::array<Point, N> points;
 
-    Plane plane() const {return Plane(points[0], points[1], points[2]);}
+    Plane plane() const
+    {
+        return Plane(points[0], points[1], points[2]);
+    }
 
 public:
     Polygon(const std::array<Point, N>& points, Orientation orientation = Orientation::UP)
-        : orientation(orientation), points(points) {}
+        : orientation(orientation),
+          points(points)
+    {}
 
     Point intersect(const Ray& ray) const;
     double point(Point::Axis axis, Either either) const;
@@ -70,7 +91,7 @@ public:
     double angle_cos(const Ray& ray) const;
     Orientation side(const Ray& ray) const;
     Ray reflect(const Ray& ray) const;
-    virtual Ray refract(const Ray& ray, double refraction) const;
+    Ray refract(const Ray& ray, double refraction) const;
 };
 
 template<size_t N>
@@ -139,8 +160,14 @@ Ray Polygon<N>::refract(const Ray& ray, double refraction) const
 class Triangle : public Monochrome_primitive, public Polygon<3ul>
 {   
 public:
-    Triangle(const std::array<Point, 3ul>& points, const Surface<Color>& surface, Orientation orientation = Orientation::UP)
-        : Monochrome_primitive(surface), Polygon(points, orientation) {}
+
+
+    Triangle(const std::array<Point, 3ul>& points,
+             const Surface<Color>& surface,
+             Orientation orientation = Orientation::UP)
+        : Monochrome_primitive(surface),
+          Polygon(points, orientation)
+    {}
 
     virtual Point intersect(const Ray& ray) const override;
     virtual double point(Point::Axis axis, Either either) const override;
@@ -153,8 +180,10 @@ public:
 class Base_quadrangle : public virtual Primitive, public Polygon<4ul>
 {
 public:
-    Base_quadrangle(const std::array<Point, 4ul>& points, Orientation orientation = Orientation::UP)
-        : Polygon(points, orientation) {}
+    Base_quadrangle(const std::array<Point, 4ul>& points,
+                    Orientation orientation = Orientation::UP)
+        : Polygon(points, orientation)
+    {}
 
     virtual Point intersect(const Ray& ray) const override;
     virtual double point(Point::Axis axis, Either either) const override;
@@ -167,43 +196,60 @@ public:
 class Quadrangle : public Base_quadrangle, public Monochrome_primitive
 {
 public:
-    Quadrangle(const std::array<Point, 4ul>& points, const Surface<Color>& surface, Orientation orientation = Orientation::UP)
-        : Base_quadrangle(points, orientation), Monochrome_primitive(surface) {}
+    Quadrangle(const std::array<Point, 4ul>& points,
+               const Surface<Color>& surface,
+               Orientation orientation = Orientation::UP)
+        : Base_quadrangle(points, orientation),
+          Monochrome_primitive(surface)
+    {}
 };
 
 //assuming the diagonal is points[0] is right_down, points[1] is left_down, points[2] is left_up
 class Base_parallelogramm : public Base_quadrangle
 {   
 public:
-    Base_parallelogramm(const std::array<Point, 3ul>& points, Orientation orientation = Orientation::UP)
-        : Base_quadrangle(std::array<Point, 4ul>{   points[0],
+    Base_parallelogramm(const std::array<Point, 3ul>& points,
+                        Orientation orientation = Orientation::UP)
+        : Base_quadrangle(  std::array<Point, 4ul>{ points[0],
                                                     points[1],
                                                     points[2],
                                                     points[0] + points[2] - points[1]},
-                                                    orientation) {}
+                            orientation)
+    {}
 };
 
 template<typename C>
-class Parallelogramm {};
+class Parallelogramm
+{};
 
 template<>
 class Parallelogramm<Color> : public Base_parallelogramm, public Monochrome_primitive
 {
 public:
-    Parallelogramm(const std::array<Point, 3ul>& points, Surface<Color> surface, Orientation orientation = Orientation::UP)
-        : Base_parallelogramm(points, orientation), Monochrome_primitive(surface) {}
+    Parallelogramm(const std::array<Point, 3ul>& points,
+                   Surface<Color> surface,
+                   Orientation orientation = Orientation::UP)
+        : Base_parallelogramm(points, orientation),
+          Monochrome_primitive(surface)
+    {}
 };
 
 template<>
 class Parallelogramm<Texture> : public Base_parallelogramm, public Simple_surface_primitive<Texture>
 {
 public:
-    Parallelogramm(const std::array<Point, 3ul>& points, Surface<Texture> surface, Orientation orientation = Orientation::UP)
-        : Base_parallelogramm(points, orientation), Simple_surface_primitive(surface) {}
+    Parallelogramm(const std::array<Point, 3ul>& points,
+                   Surface<Texture> surface,
+                   Orientation orientation = Orientation::UP)
+        : Base_parallelogramm(points, orientation),
+          Simple_surface_primitive(surface)
+    {}
 
-    Color get_color(const Point& point) const
+    virtual Color get_color(const Point& point) const override
     {
-        std::array<double, 2> decomposition = projections(points[2] - points[1], points[0] - points[1], point - points[1]);
+        std::array<double, 2> decomposition = projections(  points[2] - points[1],
+                                                            points[0] - points[1],
+                                                            point - points[1]);
 
         Texture texture = Simple_surface_primitive::surface.color;
         return texture  [decomposition[0] * texture.height()]
@@ -218,7 +264,9 @@ private:
     double r;
 
 public:
-    Sphere(const Point& center, double r, const Surface<Color>& surface) : Monochrome_primitive(surface), center(center), r(r) {}
+    Sphere(const Point& center, double r, const Surface<Color>& surface)
+        : Monochrome_primitive(surface), center(center), r(r)
+    {}
 
     virtual Point intersect(const Ray& ray) const override;
     virtual double point(Point::Axis axis, Either either) const override;
@@ -227,8 +275,14 @@ public:
     virtual Ray reflect(const Ray& ray) const override;
     virtual Ray refract(const Ray& ray) const override;
 
-    bool in(const Point& point) const {return (center - point).mod() < r;}
-    Point normal(const Point& point) const {return point - center;}
+    bool in(const Point& point) const
+    {
+        return (center - point).mod() < r;
+    }
+    Point normal(const Point& point) const
+    {
+        return point - center;
+    }
 };
 
 }

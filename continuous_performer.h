@@ -7,8 +7,6 @@
 namespace ray_tracing
 {
 
-const size_t WORKERS_NUM = 4;
-
 class Semaphore
 {
 private:
@@ -17,12 +15,25 @@ private:
     size_t count;
 
 public:
-    Semaphore(size_t count = 0) : count(count) {}
+    Semaphore(size_t count = 0)
+        : count(count)
+    {}
     void decrease();
     void increase();
 };
 
-void continuous_perform(std::vector<std::future<void>>& tasks);
+class Continuous_performer
+{
+private:
+    const size_t WORKERS_NUM;
+
+public:
+    Continuous_performer(size_t workers_num = 4)
+        : WORKERS_NUM(workers_num)
+    {}
+
+    void continuous_perform(std::vector<std::future<void>>& tasks);
+};
 
 }
 

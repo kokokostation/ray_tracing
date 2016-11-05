@@ -5,7 +5,8 @@
 #include "geometry.h"
 #include "primitive.h"
 
-ray_tracing::Kd_tree::Kd_tree(const std::vector<std::shared_ptr<Primitive>>& primitives) : root(std::make_shared<Node>())
+ray_tracing::Kd_tree::Kd_tree(const std::vector<std::shared_ptr<Primitive>>& primitives)
+    : root(std::make_shared<Node>())
 {
     root->box = Box(Point::MAX, Point::MIN);
 
@@ -22,7 +23,9 @@ ray_tracing::Kd_tree::Kd_tree(const std::vector<std::shared_ptr<Primitive>>& pri
 }
 
 std::array<std::vector<std::shared_ptr<ray_tracing::Primitive>>, 2>
-    ray_tracing::Kd_tree::split(const std::vector<std::shared_ptr<Primitive>>& primitives, Point::Axis axis, double splitting_plane) const
+    ray_tracing::Kd_tree::split(const std::vector<std::shared_ptr<Primitive>>& primitives,
+                                Point::Axis axis,
+                                double splitting_plane) const
 {
     std::array<std::vector<std::shared_ptr<ray_tracing::Primitive>>, 2> result;
 
@@ -37,7 +40,8 @@ std::array<std::vector<std::shared_ptr<ray_tracing::Primitive>>, 2>
     return result;
 }
 
-void ray_tracing::Kd_tree::build(const std::shared_ptr<Node>& node, const std::vector<std::shared_ptr<Primitive>>& primitives)
+void ray_tracing::Kd_tree::build(const std::shared_ptr<Node>& node,
+                                 const std::vector<std::shared_ptr<Primitive>>& primitives)
 {
     Point::Axis best_splitting_axis;
     double best_splitting_plane;
@@ -97,7 +101,8 @@ std::shared_ptr<ray_tracing::Primitive> ray_tracing::Kd_tree::trace(const Ray& r
     return trace(root, ray);
 }
 
-std::shared_ptr<ray_tracing::Primitive> ray_tracing::Kd_tree::trace(const std::shared_ptr<Node>& node, const Ray& ray) const
+std::shared_ptr<ray_tracing::Primitive>
+    ray_tracing::Kd_tree::trace(const std::shared_ptr<Node>& node, const Ray& ray) const
 {
     if(!node->contents.empty())
     {
@@ -112,7 +117,9 @@ std::shared_ptr<ray_tracing::Primitive> ray_tracing::Kd_tree::trace(const std::s
                 continue;
 
             double current_coefficient = ray.coefficient(intersection);
-            if(current_coefficient != Ray::NOWHERE && (coefficient == Ray::NOWHERE || coefficient > current_coefficient))
+            if(current_coefficient != Ray::NOWHERE &&
+               (coefficient == Ray::NOWHERE
+                || coefficient > current_coefficient))
             {
                 coefficient = current_coefficient;
                 result_primitive = primitive;

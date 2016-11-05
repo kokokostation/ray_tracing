@@ -9,12 +9,13 @@
 #include "kd_tree.h"
 #include "continuous_performer.h"
 
-ray_tracing::Light_force ray_tracing::Tracer::light_force(const std::shared_ptr<Primitive>& primitive, const Ray& ray, const Kd_tree& tree) const
+ray_tracing::Light::Light_force
+    ray_tracing::Tracer::light_force(const std::shared_ptr<Primitive>& primitive, const Ray& ray) const
 {
-    Light_force light_force = DARKNESS;
+    Light::Light_force light_force = Light::DARKNESS;
     Point point = primitive->intersect(ray);
 
-    for(const Light& l : lights)
+    for(const Light& l : scene.lights)
     {
         Ray light_ray(l.place, point);
 
@@ -23,42 +24,61 @@ ray_tracing::Light_force ray_tracing::Tracer::light_force(const std::shared_ptr<
             continue;
 
         if(light_intersection->intersect(light_ray) == point &&
-                light_intersection->side(light_ray) == primitive->side(ray))
+           light_intersection->side(light_ray) == primitive->side(ray))
+        {
             light_force += l.calculate(primitive->angle_cos(light_ray),
                                        angle_cos(-ray.guiding(), primitive->reflect(light_ray).guiding()),
                                        point);
+        }
     }
 
     return light_force;
 }
 
-ray_tracing::Color ray_tracing::Tracer::trace(const Ray& ray, const Kd_tree& tree, size_t depth) const
+ray_tracing::Ray ray_tracing::Tracer::produce_ray(double i, double j) const
+{
+    return Ray(scene.viewport.view,
+               scene.viewport.left_down +
+               (scene.viewport.left_up - scene.viewport.left_down) * i / scene.viewport.height +
+               (scene.viewport.right_down - scene.viewport.left_down) * j / scene.viewport.width);
+}
+
+ray_tracing::Color ray_tracing::Tracer::trace(const Ray& ray, size_t depth) const
 {
     if(depth == 0)
-        return Color();
+        return Color::BLACK;
 
     std::shared_ptr<Primitive> intersection = tree.trace(ray);
     if(!intersection)
-        return Color();
+        return Color::BLACK;
 
     Point intersection_point = intersection->intersect(ray);
     Color intersection_color = intersection->get_color(intersection_point);
+
     double  alpha = intersection->get_alpha(),
             transparency = intersection->get_transparency();
-    return  (eq_zero(1 - alpha) || eq_zero(intersection_color.mod()) ? Color() :
-                                                                       intersection_color * (1 - alpha) * light_force(intersection, ray, tree)) +
-            (eq_zero(alpha) ? Color() : trace(intersection->reflect(ray).correct(), tree, depth - 1) * alpha) +
-            (eq_zero(transparency) ? Color() : trace(intersection->refract(ray).correct(), tree, depth - 1) * transparency);
+    Color result;
+
+    if(!eq_zero(1 - alpha) && intersection_color != Color::BLACK)
+        result += intersection_color * (1 - alpha) * light_force(intersection, ray);
+
+    if(!eq_zero(alpha))
+        result += trace(intersection->reflect(ray).correct(), depth - 1) * alpha;
+
+    if(!eq_zero(transparency))
+        result += trace(intersection->refract(ray).correct(), depth - 1) * transparency;
+
+    return result;
 }
 
-void ray_tracing::Tracer::produce_picture_helper(size_t from, size_t to, Matrix& matrix, const Kd_tree& tree) const
+void ray_tracing::Tracer::produce_picture_helper(size_t from, size_t to)
 {
     for(size_t i = from; i < to; ++i)
         for(size_t j = 0; j < matrix.width(); ++j)
-            matrix[i][j] = trace(produce_ray(i + 0.5, j + 0.5), tree, TRACE_DEPTH);
+            matrix[i][j] = trace(produce_ray(i + 0.5, j + 0.5), TRACE_DEPTH);
 }
 
-void ray_tracing::Tracer::anti_aliasing_determinant(size_t from, size_t to, const Matrix& matrix, Determinant_matrix& dots) const
+void ray_tracing::Tracer::anti_aliasing_determinant(size_t from, size_t to)
 {
     for(size_t i = from; i < to; ++i)
         for(size_t j = 0; j < matrix.width(); ++j)
@@ -85,18 +105,18 @@ void ray_tracing::Tracer::anti_aliasing_determinant(size_t from, size_t to, cons
             variance = variance / loc.size() - expectation * expectation / pow(loc.size(), 2.0);
 
             if(variance.mod() > ANTI_ALIASING_BOUND)
-                dots[i][j] = true;
+                determinant_matrix[i][j] = true;
         }
 }
 
-void ray_tracing::Tracer::anti_aliasing_performer(size_t from, size_t to, Matrix& matrix, const Kd_tree& tree, const Determinant_matrix& dots) const
+void ray_tracing::Tracer::anti_aliasing_performer(size_t from, size_t to)
 {
     std::map<std::array<double, 2>, Color> additionally_traced_rays;
 
     for(size_t i = from; i < to; ++i)
-        for(size_t j = 0; j < dots[i].size(); ++j)
+        for(size_t j = 0; j < determinant_matrix[i].size(); ++j)
         {
-            if(!dots[i][j])
+            if(!determinant_matrix[i][j])
                 continue;
 
             Color result;
@@ -112,15 +132,16 @@ void ray_tracing::Tracer::anti_aliasing_performer(size_t from, size_t to, Matrix
                     if(iter != additionally_traced_rays.end())
                         result += iter->second;
                     else
-                        result += additionally_traced_rays[std::array<double, 2>{x, y}] = trace(produce_ray(x, y), tree, TRACE_DEPTH);
+                        result += additionally_traced_rays[std::array<double, 2>{x, y}] =
+                                    trace(produce_ray(x, y), TRACE_DEPTH);
                 }
 
             matrix[i][j] = (result + matrix[i][j]) / 9;
         }
 }
 
-template<typename F, typename... Args>
-void ray_tracing::Tracer::parallel_perform(const Matrix& matrix, F function, Args&... args) const
+template<typename F>
+void ray_tracing::Tracer::parallel_perform(F function)
 {
     size_t tasks_num = matrix.width() * matrix.height() / RAYS_PER_SECOND;
 
@@ -131,30 +152,26 @@ void ray_tracing::Tracer::parallel_perform(const Matrix& matrix, F function, Arg
 
     size_t chunk_size = matrix.height() / tasks_num;
     for(size_t i = 0; i + 1 < tasks_num; ++i)
-        tasks.push_back(std::async(std::launch::deferred,
+        tasks.push_back(std::async(  std::launch::deferred,
                                      function,
-                                     *this,
-                                     i * chunk_size, (i + 1) * chunk_size,
-                                     std::ref(args)...));
+                                     this,
+                                     i * chunk_size,
+                                     (i + 1) * chunk_size));
 
-    tasks.push_back(std::async(std::launch::deferred,
+    tasks.push_back(std::async(  std::launch::deferred,
                                  function,
-                                 *this,
-                                 (tasks_num - 1) * chunk_size, matrix.height(),
-                                 std::ref(args)...));
+                                 this,
+                                 (tasks_num - 1) * chunk_size,
+                                 matrix.height()));
 
-    continuous_perform(tasks);
+    performer.continuous_perform(tasks);
 }
 
-ray_tracing::Matrix ray_tracing::Tracer::produce_picture() const
+ray_tracing::Matrix ray_tracing::Tracer::produce_picture()
 {
-    Matrix matrix(screen.height, screen.width);
-    Kd_tree tree(primitives);
-    Determinant_matrix dots(screen.height, std::vector<char>(screen.width, false));
-
-    parallel_perform(matrix, &Tracer::produce_picture_helper, matrix, tree);
-    parallel_perform(matrix, &Tracer::anti_aliasing_determinant, matrix, dots);
-    parallel_perform(matrix, &Tracer::anti_aliasing_performer, matrix, tree, dots);
+    parallel_perform(&Tracer::produce_picture_helper);
+    parallel_perform(&Tracer::anti_aliasing_determinant);
+    parallel_perform(&Tracer::anti_aliasing_performer);
 
     return matrix;
 }

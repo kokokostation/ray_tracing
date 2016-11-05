@@ -20,15 +20,19 @@ struct Node
 class Kd_tree
 {
 private:
-    constexpr static size_t SPLITTING_PLANES_NUM = 3;
+    static const size_t SPLITTING_PLANES_NUM = 3;
 
 private:
     std::shared_ptr<Node> root;
 
-    void build(const std::shared_ptr<Node>& node, const std::vector<std::shared_ptr<Primitive>>& primitives);
+    void build(const std::shared_ptr<Node>& node,
+               const std::vector<std::shared_ptr<Primitive>>& primitives);
+
     std::shared_ptr<Primitive> trace(const std::shared_ptr<Node>& node, const Ray& ray) const;
+
     std::array<std::vector<std::shared_ptr<Primitive>>, 2>
-        split(const std::vector<std::shared_ptr<Primitive>>& primitives, Point::Axis axis, double splitiing_plane) const;
+        split(const std::vector<std::shared_ptr<Primitive>>& primitives,
+              Point::Axis axis, double splitiing_plane) const;
 
 public:
     Kd_tree(const std::vector<std::shared_ptr<Primitive>>& primitives);
