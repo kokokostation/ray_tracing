@@ -38,7 +38,7 @@ void ray_tracing::Main_window::resizeGL(int new_width, int new_height)
 {
     glViewport(0, 0, new_width, new_height);
 
-    glPixelZoom(new_width / (double) matrix.width(), new_height / (double) matrix.height());
+    glPixelZoom(double(new_width) / matrix.width(), double(new_height) / matrix.height());
 }
 
 ray_tracing::Main_window::Main_window(const Matrix& matrix, QWidget *parent)

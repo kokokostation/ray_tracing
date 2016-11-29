@@ -102,7 +102,7 @@ struct Matrix : public std::vector<std::vector<Color>>
     Matrix()
     {}
     Matrix(size_t height, size_t width)
-        : std::vector<std::vector<Color>>(height, Row(width))
+        : std::vector<Row>(height, Row(width))
     {}
 
     size_t height() const
