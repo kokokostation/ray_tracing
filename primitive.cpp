@@ -58,7 +58,7 @@ ray_tracing::Ray ray_tracing::Triangle::reflect(const Ray& ray) const
 
 ray_tracing::Ray ray_tracing::Triangle::refract(const Ray& ray) const
 {
-    return Polygon::refract(ray, surface.refraction);
+    return Polygon::refract(ray, get_refraction());
 }
 
 ray_tracing::Point ray_tracing::Sphere::intersect(const Ray& ray) const
@@ -116,6 +116,6 @@ ray_tracing::Ray ray_tracing::Sphere::refract(const Ray& ray) const
     return ray_tracing::refract(ray,
                                 intersection,
                                 normal(intersection),
-                                side(ray) == Orientation::UP ? surface.refraction : 1. / surface.refraction);
+                                side(ray) == Orientation::UP ? get_refraction() : 1. / get_refraction());
 }
 

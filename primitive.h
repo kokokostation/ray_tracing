@@ -31,7 +31,7 @@ public:
 template<typename C>
 class Simple_surface_primitive : public virtual Primitive
 {
-protected:
+private:
     Surface<C> surface;
 
 public:
@@ -51,6 +51,10 @@ public:
     {
         return surface.refraction;
     }
+    const Surface<C>& get_surface() const
+    {
+        return surface;
+    }
 };
 
 class Monochrome_primitive : public Simple_surface_primitive<Color>
@@ -62,7 +66,7 @@ public:
 
     virtual Color get_color(const Point& point) const override
     {
-        return Simple_surface_primitive::surface.color;
+        return Simple_surface_primitive::get_surface().color;
     }
 };
 
@@ -70,14 +74,9 @@ public:
 template<size_t N>
 class Polygon
 {
-protected:
+private:
     Orientation orientation;
     std::array<Point, N> points;
-
-    Plane plane() const
-    {
-        return Plane(points[0], points[1], points[2]);
-    }
 
 public:
     Polygon(const std::array<Point, N>& points, Orientation orientation = Orientation::UP)
@@ -92,6 +91,20 @@ public:
     Orientation side(const Ray& ray) const;
     Ray reflect(const Ray& ray) const;
     Ray refract(const Ray& ray, double refraction) const;
+
+    Plane plane() const
+    {
+        return Plane(points[0], points[1], points[2]);
+    }
+
+    const Point& get_point(size_t i) const
+    {
+        return points[i];
+    }
+    Orientation get_orientation() const
+    {
+        return orientation;
+    }
 };
 
 template<size_t N>
@@ -204,7 +217,7 @@ public:
     {}
 };
 
-//assuming the diagonal is points[0] is right_down, points[1] is left_down, points[2] is left_up
+//assuming points[0] is right_down, points[1] is left_down, points[2] is left_up
 class Base_parallelogramm : public Base_quadrangle
 {   
 public:
@@ -247,11 +260,11 @@ public:
 
     virtual Color get_color(const Point& point) const override
     {
-        std::array<double, 2> decomposition = projections(  points[2] - points[1],
-                                                            points[0] - points[1],
-                                                            point - points[1]);
+        std::array<double, 2> decomposition = projections(  Polygon::get_point(2) - Polygon::get_point(1),
+                                                            Polygon::get_point(0) - Polygon::get_point(1),
+                                                            point - Polygon::get_point(1));
 
-        Texture texture = Simple_surface_primitive::surface.color;
+        Texture texture = Simple_surface_primitive::get_surface().color;
         return texture  [decomposition[0] * texture.height()]
                         [decomposition[1] * texture.width()];
     }
